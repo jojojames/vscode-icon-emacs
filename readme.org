@@ -8,8 +8,8 @@
 
   #+begin_src emacs-lisp :tangle yes
     (use-package vscode-icon
-    :ensure t
-    :commands (vscode-icon-for-file))
+      :ensure t
+      :commands (vscode-icon-for-file))
   #+end_src
 * Usage
   #+begin_src emacs-lisp :tangle yes
