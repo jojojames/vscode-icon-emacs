@@ -1,0 +1,20 @@
+#+TITLE: VsCode Icons for Emacs
+
+* Install
+  This package is intended to be used as a dependency to other packages.
+  (e.g. in a Package-Requires: block)
+
+  To install separately:
+
+  #+begin_src emacs-lisp :tangle yes
+    (use-package vscode-icon
+    :ensure t
+    :commands (vscode-icon-for-file))
+  #+end_src
+* Usage
+  #+begin_src emacs-lisp :tangle yes
+  (setq json-image (vscode-icon-for-file "somejsonfile.json"))
+  (insert-image json-image)
+  #+end_src
+* Examples
+  Take a look at [[https://github.com/jojojames/dired-sidebar][dired-sidebar]] for screenshots and example usage.
