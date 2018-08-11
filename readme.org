@@ -18,3 +18,5 @@
   #+end_src
 * Examples
   Take a look at [[https://github.com/jojojames/dired-sidebar][dired-sidebar]] for screenshots and example usage.
+* Source
+  https://github.com/vscode-icons/vscode-icons
