@@ -11,6 +11,11 @@
       :ensure t
       :commands (vscode-icon-for-file))
   #+end_src
+
+  For best quality icons, users should install Emacs with imagemagick support.
+  #+begin_src sh :tangle yes
+  brew install emacs --HEAD --with-librsvg --with-cocoa --with-imagemagick@6
+  #+end_src
 * Usage
   #+begin_src emacs-lisp :tangle yes
   (setq json-image (vscode-icon-for-file "somejsonfile.json"))
