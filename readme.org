@@ -21,7 +21,9 @@
   (setq json-image (vscode-icon-for-file "somejsonfile.json"))
   (insert-image json-image)
   #+end_src
+* Screenshots
+  [[./screenshots/ex.png]]
 * Examples
-  Take a look at [[https://github.com/jojojames/dired-sidebar][dired-sidebar]] for screenshots and example usage.
+  Take a look at [[https://github.com/jojojames/dired-sidebar][dired-sidebar]] for more screenshots and example usage.
 * Source
   https://github.com/vscode-icons/vscode-icons
