@@ -188,5 +188,49 @@ If there is no extension, just return the base file name."
         (format "%s.%s" base ext)
       base)))
 
+(defun vscode-icon-convert-icons-from-svg-to-png (icon-size)
+  "Convert svg images to pngs sizing them to ICON-SIZE."
+  (unless (executable-find "svgexport")
+    (user-error "svgexport not found!"))
+  (unless (executable-find "convert")
+    (user-error "convert not found! Install imagemagick to use convert."))
+  (let ((default-directory vscode-icon-root)
+        (target-directory
+         (if icon-size
+             (expand-file-name (format "icons/%d" icon-size) vscode-icon-root)
+           (expand-file-name "icons" vscode-icon-root))))
+    (unless (file-directory-p target-directory)
+      (make-directory target-directory)))
+  (mapcar
+   (lambda (file)
+     (let ((ext (file-name-extension file))
+           (base (file-name-base file)))
+       (when (equal ext "svg")
+         (let ((density (* icon-size 3)))
+           (shell-command
+            (format
+             "convert -density %d -background none -size %d %s %s"
+             density
+             icon-size
+             file
+             (format "%sicons/%d/%s.png" vscode-icon-root icon-size base)))))))
+   (directory-files vscode-icon-source-dir t)))
+
+(defun vscode-icon-convert-icons-from-svg-to-png-async ()
+  "Run `vscode-icon-convert-icons-from-svg-to-png' in another Emacs process."
+  (interactive)
+  (if (fboundp 'async-start)
+      (mapcar
+       (lambda (icon-size)
+         (async-start
+          `(lambda ()
+             (load ,(locate-library "vscode-icon"))
+             (require 'vscode-icon)
+             (vscode-icon-convert-icons-from-svg-to-png ,icon-size))
+          (lambda (result)
+            (message "Finished converting icons. Result: %s" result))))
+       '(26 128))
+    (user-error "Package `async' not installed.")))
+
 (provide 'vscode-icon)
 ;;; vscode-icon.el ends here
