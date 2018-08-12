@@ -179,7 +179,7 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
 (defun vscode-icon-basefile-with-extension (file)
   "Return base filename with extension given FILE.
 
-ex. ~/a/b.json -> b.json
+: ~/a/b.json -> b.json
 
 If there is no extension, just return the base file name."
   (let ((base (file-name-base file))
@@ -190,10 +190,8 @@ If there is no extension, just return the base file name."
 
 (defun vscode-icon-convert-icons-from-svg-to-png (icon-size)
   "Convert svg images to pngs sizing them to ICON-SIZE."
-  (unless (executable-find "svgexport")
-    (user-error "svgexport not found!"))
   (unless (executable-find "convert")
-    (user-error "convert not found! Install imagemagick to use convert."))
+    (user-error "Executable convert not found! Install imagemagick? "))
   (let ((default-directory vscode-icon-root)
         (target-directory
          (if icon-size
@@ -230,7 +228,7 @@ If there is no extension, just return the base file name."
           (lambda (result)
             (message "Finished converting icons. Result: %s" result))))
        '(26 128))
-    (user-error "Package `async' not installed.")))
+    (user-error "Package `async' not installed? ")))
 
 (provide 'vscode-icon)
 ;;; vscode-icon.el ends here
