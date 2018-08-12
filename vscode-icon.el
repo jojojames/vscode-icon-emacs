@@ -28,8 +28,19 @@
 ;; The entry point is `vscode-icon-for-file'.
 
 ;;; Code:
+(require 'image)
+
 (defcustom vscode-icon-scale .18
-  "The scale of icons."
+  "The scale of icons.
+
+This takes effect if `imagemagick' support is available."
+  :type 'number
+  :group 'vscode-icon)
+
+(defcustom vscode-icon-size 26
+  "The size of the icon when creating an icon.
+
+This only takes effect if `imagemagick' support is not available."
   :type 'number
   :group 'vscode-icon)
 
@@ -38,6 +49,9 @@
 
 (defvar vscode-icon-dir (format "%sicons/" vscode-icon-root)
   "Store the icons directory of `vscode-icon'.")
+
+(defvar vscode-icon-source-dir (format "%ssource/" vscode-icon-root)
+  "Store the source directory of `vscode-icon' containing the svg images.")
 
 (defvar vscode-icon-dir-alist
   '(("scripts" . "script")
@@ -95,7 +109,11 @@
   "Return an vscode icon image given FILE.
 
 Icon Source: https://github.com/vscode-icons/vscode-icons"
-  (let ((default-directory vscode-icon-dir))
+  (let ((default-directory
+          (if (image-type-available-p 'imagemagick)
+              (concat vscode-icon-dir "128/")
+            (concat vscode-icon-dir
+                    (number-to-string vscode-icon-size) "/"))))
     (if (file-directory-p file)
         (vscode-icon-dir file)
       (vscode-icon-file file))))
