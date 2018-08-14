@@ -29,6 +29,22 @@
 
 ;;; Code:
 (require 'image)
+(eval-when-compile (require 'subr-x)) ; `if-let*' and `when-let*'
+
+;; Compatibility
+
+(eval-and-compile
+  (with-no-warnings
+    (if (version< emacs-version "26")
+        (progn
+          (defalias 'vscode-icon-if-let* #'if-let)
+          (defalias 'vscode-icon-when-let* #'when-let)
+          (function-put #'vscode-icon-if-let* 'lisp-indent-function 2)
+          (function-put #'vscode-icon-when-let* 'lisp-indent-function 1))
+      (defalias 'vscode-icon-if-let* #'if-let*)
+      (defalias 'vscode-icon-when-let* #'when-let*))))
+
+;; Customizations
 
 (defcustom vscode-icon-size 23
   "The size of the icon when creating an icon.
@@ -38,6 +54,8 @@ A number other than 23 only takes effect if `imagemagick' support is available.
 If `imagemagick' support is unavailable, preset icons will be returned."
   :type 'number
   :group 'vscode-icon)
+
+;; Private variables
 
 (defvar vscode-icon-root (file-name-directory load-file-name)
   "Store the directory dired-sidebar.el was loaded from.")
@@ -100,6 +118,8 @@ If `imagemagick' support is unavailable, preset icons will be returned."
     ("elc" . "emacs")
     ("el" . "emacs")))
 
+;; Implementation
+
 (defun vscode-icon-for-file (file)
   "Return an vscode icon image given FILE.
 
@@ -117,8 +137,9 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
   "Get directory icon given FILE."
   (if (vscode-icon-dir-exists-p (file-name-base file))
       (vscode-icon-get-dir-image (file-name-base file))
-    (if-let ((val (cdr (assoc
-                        (file-name-base file) vscode-icon-dir-alist))))
+    (vscode-icon-if-let*
+        ((val (cdr (assoc
+                    (file-name-base file) vscode-icon-dir-alist))))
         (if (vscode-icon-dir-exists-p val)
             (vscode-icon-get-dir-image val)
           (vscode-icon-default-folder))
@@ -128,12 +149,13 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
   "Get file icon given FILE."
   (if (vscode-icon-file-exists-p (file-name-extension file))
       (vscode-icon-get-file-image (file-name-extension file))
-    (if-let ((val (or
-                   (cdr (assoc (vscode-icon-basefile-with-extension file)
-                               vscode-icon-file-alist))
-                   (cdr (assoc file vscode-icon-file-alist))
-                   (cdr (assoc (file-name-extension file)
-                               vscode-icon-file-alist)))))
+    (vscode-icon-if-let*
+        ((val (or
+               (cdr (assoc (vscode-icon-basefile-with-extension file)
+                           vscode-icon-file-alist))
+               (cdr (assoc file vscode-icon-file-alist))
+               (cdr (assoc (file-name-extension file)
+                           vscode-icon-file-alist)))))
         (if
             (vscode-icon-file-exists-p val)
             (vscode-icon-get-file-image val)
