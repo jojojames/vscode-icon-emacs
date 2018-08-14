@@ -30,17 +30,12 @@
 ;;; Code:
 (require 'image)
 
-(defcustom vscode-icon-scale .18
-  "The scale of icons.
-
-This takes effect if `imagemagick' support is available."
-  :type 'number
-  :group 'vscode-icon)
-
-(defcustom vscode-icon-size 26
+(defcustom vscode-icon-size 23
   "The size of the icon when creating an icon.
 
-This only takes effect if `imagemagick' support is not available."
+A number other than 23 only takes effect if `imagemagick' support is available.
+
+If `imagemagick' support is unavailable, preset icons will be returned."
   :type 'number
   :group 'vscode-icon)
 
@@ -165,7 +160,7 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
 
 (defun vscode-icon-create-image (filename)
   "Helper method to create and return an image given FILENAME."
-  (let ((scale vscode-icon-scale))
+  (let ((scale (vscode-icon-get-scale vscode-icon-size)))
     (create-image filename 'png nil :scale scale :ascent 'center)))
 
 (defun vscode-icon-default-folder ()
@@ -175,6 +170,10 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
 (defun vscode-icon-default-file ()
   "Return image for default file."
   (vscode-icon-create-image (expand-file-name "default_file.png")))
+
+(defun vscode-icon-get-scale (image-size)
+  "Get scale according to IMAGE-SIZE."
+  (/ (/ image-size 1.0) 128))
 
 (defun vscode-icon-basefile-with-extension (file)
   "Return base filename with extension given FILE.
@@ -203,31 +202,77 @@ If there is no extension, just return the base file name."
    (lambda (file)
      (let ((ext (file-name-extension file))
            (base (file-name-base file)))
-       (when (equal ext "svg")
-         (let ((density (* icon-size 3)))
-           (shell-command
-            (format
-             "convert -density %d -background none -size %d %s %s"
-             density
-             icon-size
-             file
-             (format "%sicons/%d/%s.png" vscode-icon-root icon-size base)))))))
-   (directory-files vscode-icon-source-dir t)))
+       (when (equal ext "png")
+         (let* ((density (* icon-size 3))
+                ;; `imagemagick' takes a percentage but `vscode-icon-get-scale'
+                ;; returns a decimal, so multiply by 100.
+                ;; ex. .18 --> 18
+                (scale (truncate (* 100 (vscode-icon-get-scale icon-size))))
+                (command
+                 (format
+                  "convert -density %d -background none -scale %d%% %s %s"
+                  density
+                  scale
+                  file
+                  (format "%sicons/%d/%s.png" vscode-icon-root icon-size base))))
+           (let ((result (shell-command command)))
+             `(,command . ,result))))))
+   (directory-files (format "%sicons/128/" vscode-icon-root) t)))
+
+(defun vscode-icon-create-source-pngs (&optional force)
+  "Create source png from svg to convert to smaller icons.
+
+Only create source icons if FORCE is non nil or if the directory is empty.
+
+i.e. Don't create source pngs if there are already source pngs created."
+  (unless (executable-find "convert")
+    (user-error "Executable convert not found! Install imagemagick? "))
+  (let ((default-directory vscode-icon-root)
+        (target-directory (expand-file-name "icons/128" vscode-icon-root)))
+    (unless (file-directory-p target-directory)
+      (make-directory target-directory))
+    (if (and (not force)
+             (> (length (directory-files target-directory)) 2))
+        'skip
+      (mapcar
+       (lambda (file)
+         (let ((ext (file-name-extension file))
+               (base (file-name-base file)))
+           (when (equal ext "svg")
+             (let* ((density (* 128 3))
+                    (command
+                     (format
+                      "convert -density %d -background none -size 128x128 %s %s"
+                      density
+                      file
+                      (format "%sicons/128/%s.png" vscode-icon-root base))))
+               (let ((result (shell-command command)))
+                 `(,command . ,result))))))
+       (directory-files vscode-icon-source-dir t)))))
 
 (defun vscode-icon-convert-icons-from-svg-to-png-async ()
   "Run `vscode-icon-convert-icons-from-svg-to-png' in another Emacs process."
   (interactive)
   (if (fboundp 'async-start)
-      (mapcar
-       (lambda (icon-size)
-         (async-start
-          `(lambda ()
-             (load ,(locate-library "vscode-icon"))
-             (require 'vscode-icon)
-             (vscode-icon-convert-icons-from-svg-to-png ,icon-size))
-          (lambda (result)
-            (message "Finished converting icons. Result: %s" result))))
-       '(26 128))
+      (async-start
+       `(lambda ()
+          (load ,(locate-library "vscode-icon"))
+          (require 'vscode-icon)
+          (vscode-icon-create-source-pngs))
+       (lambda (create-source-icon-result)
+         (if (eq create-source-icon-result 'skip)
+             (message "Skipped creating source pngs... Converting icons..")
+           (message "Finished creating source pngs.. Converting icons.."))
+         (mapcar
+          (lambda (icon-size)
+            (async-start
+             `(lambda ()
+                (load ,(locate-library "vscode-icon"))
+                (require 'vscode-icon)
+                (vscode-icon-convert-icons-from-svg-to-png ,icon-size))
+             (lambda (result)
+               (message "Finished converting icons. Result: %s" result))))
+          '(23))))
     (user-error "Package `async' not installed? ")))
 
 (provide 'vscode-icon)
