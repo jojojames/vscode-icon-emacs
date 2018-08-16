@@ -25,5 +25,31 @@
   [[./screenshots/ex.png]]
 * Examples
   Take a look at [[https://github.com/jojojames/dired-sidebar][dired-sidebar]] for more screenshots and example usage.
+* Using different sized icons
+  This package comes with 128x128 sized icons as well as 23x23 sized icons.
+
+  If emacs comes with imagemagick support compiled in, this package will use
+  the 128x128 sized icons and scale them accordingly.
+
+  If emacs doesn't come with imagemagick support, 23x23 sized icons will be used.
+  If these icons are not a good size, it is possible to convert the icon yourself.
+
+  #+begin_src emacs-lisp :tangle yes
+  ; M-x vscode-icon-convert-and-copy
+  ; Enter the size of the icon you'd like.
+  ; The icons will be converted and moved to a custom user directory
+  ; that can be customized using `vscode-icon-extra-icon-directory'.
+  ; Look at the defcustoms in this package for more details.
+  #+end_src
+
+  #+begin_src emacs-lisp :tangle yes
+  ; A simple example if I want 16x16 icons:
+  ; M-x vscode-icon-convert-and-copy
+  ; 16 RET
+  ; (setq vscode-icon-size 16)
+  #+end_src
 * Source
   https://github.com/vscode-icons/vscode-icons
+* Help Wanted
+  Emacs scales 128x128 icons better with imagemagick support than my
+  own imagemagick command. It'd be good to figure this out...
