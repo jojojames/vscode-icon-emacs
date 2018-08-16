@@ -49,10 +49,18 @@
 (defcustom vscode-icon-size 23
   "The size of the icon when creating an icon.
 
-A number other than 23 only takes effect if `imagemagick' support is available.
+A number other than 23 is only available if there are icons of that size.
 
-If `imagemagick' support is unavailable, preset icons will be returned."
+See `vscode-icon-extra-icon-directory'."
   :type 'number
+  :group 'vscode-icon)
+
+(defcustom vscode-icon-extra-icon-directory "~/.emacs.d/icons/"
+  "Directory to install vscode icons in.
+
+This directory is searched when icons are being searched for in addition to
+`vscode-icon-dir'."
+  :type 'string
   :group 'vscode-icon)
 
 ;; Private variables
@@ -135,20 +143,22 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
 
 (defun vscode-icon-dir (file)
   "Get directory icon given FILE."
-  (if (vscode-icon-dir-exists-p (file-name-base file))
-      (vscode-icon-get-dir-image (file-name-base file))
+  (vscode-icon-if-let* ((filepath (vscode-icon-dir-exists-p
+                                   (file-name-base file))))
+      (vscode-icon-create-image filepath)
     (vscode-icon-if-let*
         ((val (cdr (assoc
                     (file-name-base file) vscode-icon-dir-alist))))
-        (if (vscode-icon-dir-exists-p val)
-            (vscode-icon-get-dir-image val)
+        (vscode-icon-if-let* ((filepath (vscode-icon-dir-exists-p val)))
+            (vscode-icon-create-image filepath)
           (vscode-icon-default-folder))
       (vscode-icon-default-folder))))
 
 (defun vscode-icon-file (file)
   "Get file icon given FILE."
-  (if (vscode-icon-file-exists-p (file-name-extension file))
-      (vscode-icon-get-file-image (file-name-extension file))
+  (vscode-icon-if-let* ((filepath (vscode-icon-file-exists-p
+                                   (file-name-extension file))))
+      (vscode-icon-create-image filepath)
     (vscode-icon-if-let*
         ((val (or
                (cdr (assoc (vscode-icon-basefile-with-extension file)
@@ -156,29 +166,36 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
                (cdr (assoc file vscode-icon-file-alist))
                (cdr (assoc (file-name-extension file)
                            vscode-icon-file-alist)))))
-        (if
-            (vscode-icon-file-exists-p val)
-            (vscode-icon-get-file-image val)
+        (vscode-icon-if-let* ((filepath (vscode-icon-file-exists-p val)))
+            (vscode-icon-create-image filepath)
           (vscode-icon-default-file))
       (vscode-icon-default-file))))
 
-(defun vscode-icon-get-dir-image (key)
-  "Return icon for KEY."
-  (vscode-icon-create-image
-   (expand-file-name (format "folder_type_%s.png" key))))
-
-(defun vscode-icon-get-file-image (key)
-  "Return icon for KEY."
-  (vscode-icon-create-image
-   (expand-file-name (format "file_type_%s.png" key))))
-
 (defun vscode-icon-file-exists-p (key)
-  "Check if there is an icon for KEY."
-  (file-exists-p (expand-file-name (format "file_type_%s.png" key))))
+  "Check if there is an icon for KEY.
+
+Return filepath of icon if so."
+  (let ((path-in-default-dir (expand-file-name (format "file_type_%s.png" key)))
+        (path-in-extra-dir (expand-file-name (format "%d/file_type_%s.png"
+                                                     vscode-icon-size key)
+                                             vscode-icon-extra-icon-directory)))
+    (cond
+     ((file-exists-p path-in-default-dir) path-in-default-dir)
+     ((file-exists-p path-in-extra-dir) path-in-extra-dir)
+     (:default nil))))
 
 (defun vscode-icon-dir-exists-p (key)
-  "Check if there is an icon for KEY."
-  (file-exists-p (expand-file-name (format "folder_type_%s.png" key))))
+  "Check if there is an icon for KEY.
+
+Return filepath of icon if so."
+  (let ((path-in-default-dir (expand-file-name (format "folder_type_%s.png" key)))
+        (path-in-extra-dir (expand-file-name (format "%d/folder_type_%s.png"
+                                                     vscode-icon-size key)
+                                             vscode-icon-extra-icon-directory)))
+    (cond
+     ((file-exists-p path-in-default-dir) path-in-default-dir)
+     ((file-exists-p path-in-extra-dir) path-in-extra-dir)
+     (:default nil))))
 
 (defun vscode-icon-create-image (filename)
   "Helper method to create and return an image given FILENAME."
@@ -272,9 +289,9 @@ i.e. Don't create source pngs if there are already source pngs created."
                  `(,command . ,result))))))
        (directory-files vscode-icon-source-dir t)))))
 
-(defun vscode-icon-convert-icons-from-svg-to-png-async ()
+(defun vscode-icon-convert-icons-from-svg-to-png-async (&optional convert-size copy)
   "Run `vscode-icon-convert-icons-from-svg-to-png' in another Emacs process."
-  (interactive)
+  (interactive "nIcon Size: ")
   (if (fboundp 'async-start)
       (async-start
        `(lambda ()
@@ -292,10 +309,36 @@ i.e. Don't create source pngs if there are already source pngs created."
                 (load ,(locate-library "vscode-icon"))
                 (require 'vscode-icon)
                 (vscode-icon-convert-icons-from-svg-to-png ,icon-size))
-             (lambda (result)
-               (message "Finished converting icons. Result: %s" result))))
-          '(23))))
+             `(lambda (result)
+                (message "Finished converting icons. Result: %s" result)
+                (when ,copy
+                  (vscode-icon-copy-icons-to-user-directory)))))
+          `(,(if convert-size convert-size 23)))))
     (user-error "Package `async' not installed? ")))
+
+(defun vscode-icon-copy-icons-to-user-directory ()
+  "Copy `vscode-icon-dir' to `vscode-icon-extra-icon-directory'.
+
+This is useful after generating icons of a different size with
+`vscode-icon-convert-icons-from-svg-to-png-async'."
+  (interactive)
+  (if (fboundp 'async-start)
+      (progn
+        (message "Copying icons asynchronously..")
+        (async-start `(lambda ()
+                        (load ,(locate-library "vscode-icon"))
+                        (require 'vscode-icon)
+                        (copy-directory ,vscode-icon-dir
+                                        ,vscode-icon-extra-icon-directory t t t))
+                     (lambda (_)
+                       (message "Finished copying icons."))))
+    (user-error "Package `async' not installed? ")))
+
+(defun vscode-icon-convert-and-copy (&optional convert-size)
+  "Run `vscode-icon-convert-icons-from-svg-to-png-async' and then \
+copy those icons to `vscode-icon-extra-icon-directory'."
+  (interactive "nIcon Size: ")
+  (vscode-icon-convert-icons-from-svg-to-png-async convert-size :copy))
 
 (provide 'vscode-icon)
 ;;; vscode-icon.el ends here
