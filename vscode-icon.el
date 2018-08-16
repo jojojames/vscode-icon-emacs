@@ -226,7 +226,7 @@ If there is no extension, just return the base file name."
         (format "%s.%s" base ext)
       base)))
 
-(defun vscode-icon-convert-icons-from-svg-to-png (icon-size)
+(defun vscode-icon-convert-from-big-png (icon-size)
   "Convert svg images to pngs sizing them to ICON-SIZE."
   (unless (executable-find "convert")
     (user-error "Executable convert not found! Install imagemagick? "))
@@ -289,8 +289,10 @@ i.e. Don't create source pngs if there are already source pngs created."
                  `(,command . ,result))))))
        (directory-files vscode-icon-source-dir t)))))
 
-(defun vscode-icon-convert-icons-from-svg-to-png-async (&optional convert-size copy)
-  "Run `vscode-icon-convert-icons-from-svg-to-png' in another Emacs process."
+(defun vscode-icon-convert-icons-async (&optional convert-size copy)
+  "Run `vscode-icon-create-source-pngs', `vscode-icon-convert-from-big-png'\
+
+and `vscode-icon-copy-icons-to-user-directory' in another Emacs process."
   (interactive "nIcon Size: ")
   (if (fboundp 'async-start)
       (async-start
@@ -308,7 +310,7 @@ i.e. Don't create source pngs if there are already source pngs created."
              `(lambda ()
                 (load ,(locate-library "vscode-icon"))
                 (require 'vscode-icon)
-                (vscode-icon-convert-icons-from-svg-to-png ,icon-size))
+                (vscode-icon-convert-from-big-png ,icon-size))
              `(lambda (result)
                 (message "Finished converting icons. Result: %s" result)
                 (when ,copy
@@ -320,7 +322,7 @@ i.e. Don't create source pngs if there are already source pngs created."
   "Copy `vscode-icon-dir' to `vscode-icon-extra-icon-directory'.
 
 This is useful after generating icons of a different size with
-`vscode-icon-convert-icons-from-svg-to-png-async'."
+`vscode-icon-convert-icons-async'."
   (interactive)
   (if (fboundp 'async-start)
       (progn
@@ -335,10 +337,10 @@ This is useful after generating icons of a different size with
     (user-error "Package `async' not installed? ")))
 
 (defun vscode-icon-convert-and-copy (&optional convert-size)
-  "Run `vscode-icon-convert-icons-from-svg-to-png-async' and then \
+  "Run `vscode-icon-convert-icons-async' and then \
 copy those icons to `vscode-icon-extra-icon-directory'."
   (interactive "nIcon Size: ")
-  (vscode-icon-convert-icons-from-svg-to-png-async convert-size :copy))
+  (vscode-icon-convert-icons-async convert-size :copy))
 
 (provide 'vscode-icon)
 ;;; vscode-icon.el ends here
