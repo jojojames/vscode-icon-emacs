@@ -249,7 +249,7 @@ If there is no extension, just return the base file name."
                 (scale (truncate (* 100 (vscode-icon-get-scale icon-size))))
                 (command
                  (format
-                  "convert -density %d -background none -scale %d%% %s %s"
+                  "convert -depth 8 -density %d -background transparent -scale %d%% %s PNG32:%s"
                   density
                   scale
                   file
@@ -281,7 +281,7 @@ i.e. Don't create source pngs if there are already source pngs created."
              (let* ((density (* 128 3))
                     (command
                      (format
-                      "convert -density %d -background none -size 128x128 %s %s"
+                      "convert -depth 8 -density %d -background transparent -size 128x128 %s PNG32:%s"
                       density
                       file
                       (format "%sicons/128/%s.png" vscode-icon-root base))))
