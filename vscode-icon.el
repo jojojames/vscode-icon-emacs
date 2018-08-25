@@ -103,6 +103,8 @@ This directory is searched when icons are being searched for in addition to
     (".babelrc" . "babel")
     ("cargo.lock" . "cargo")
     (".tramp" . "emacs")
+    (".npmignore" . "npm")
+    (".npmrc" . "npm")
     ;; Can lowercase if needed in the future.
     ("LICENSE" . "license")
     ("Makefile" . "makefile")
