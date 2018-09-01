@@ -136,7 +136,7 @@ This directory is searched when icons are being searched for in addition to
 
 Icon Source: https://github.com/vscode-icons/vscode-icons"
   (let ((default-directory
-          (if (image-type-available-p 'imagemagick)
+          (if (vscode-icon-can-scale-image-p)
               (concat vscode-icon-dir "128/")
             (concat vscode-icon-dir
                     (number-to-string vscode-icon-size) "/"))))
@@ -212,6 +212,15 @@ Return filepath of icon if so."
 (defun vscode-icon-default-file ()
   "Return image for default file."
   (vscode-icon-create-image (expand-file-name "default_file.png")))
+
+(defun vscode-icon-can-scale-image-p ()
+  "Return whether or not Emacs can scale images."
+  (or (image-type-available-p 'imagemagick)
+      ;; Emacs 27 (OSX) supports resizing images without `imagemagick'.
+      ;; e4f2061ebc * | | Add image resizing and rotation to NS port
+      ;; Git Hash: e4f2061ebc61168f23c0d9440221cbc99864deae
+      (and (featurep 'ns)
+           (> emacs-major-version 26))))
 
 (defun vscode-icon-get-scale (image-size)
   "Get scale according to IMAGE-SIZE."
