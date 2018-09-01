@@ -18,6 +18,8 @@
   #+begin_src sh :tangle yes
   brew install emacs --HEAD --with-librsvg --with-cocoa --with-imagemagick@6
   #+end_src
+
+  Emacs 27 on OSX without imagemagick support should also work.
 * Usage
   #+begin_src emacs-lisp :tangle yes
   (setq json-image (vscode-icon-for-file "somejsonfile.json"))
