@@ -1,5 +1,7 @@
 #+TITLE: VsCode Icons for Emacs
 
+[[https://melpa.org/#/vscode-icon][file:https://melpa.org/packages/vscode-icon-badge.svg]]
+
 * Install
   This package is intended to be used as a dependency to other packages.
   (e.g. in a Package-Requires: block)
