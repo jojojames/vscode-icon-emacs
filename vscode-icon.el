@@ -109,6 +109,7 @@ This directory is searched when icons are being searched for in addition to
     ("LICENSE" . "license")
     ("Makefile" . "makefile")
     ;; Extensions.
+    ("zsh" . "shell")
     ("rb" . "ruby")
     ("restclient" . "rest")
     ("txt" . "text")
