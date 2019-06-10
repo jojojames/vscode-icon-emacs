@@ -216,12 +216,20 @@ Return filepath of icon if so."
 
 (defun vscode-icon-can-scale-image-p ()
   "Return whether or not Emacs can scale images."
-  (or (image-type-available-p 'imagemagick)
-      ;; Emacs 27 (OSX) supports resizing images without `imagemagick'.
-      ;; e4f2061ebc * | | Add image resizing and rotation to NS port
-      ;; Git Hash: e4f2061ebc61168f23c0d9440221cbc99864deae
-      (and (featurep 'ns)
-           (> emacs-major-version 26))))
+  (cond
+   ((eq system-type 'darwin)
+    (or (image-type-available-p 'imagemagick)
+        ;; Emacs 27 (OSX) supports resizing images without `imagemagick'.
+        ;; e4f2061ebc * | | Add image resizing and rotation to NS port
+        ;; Git Hash: e4f2061ebc61168f23c0d9440221cbc99864deae
+        (and
+         (fboundp 'image-transforms-p)
+         (image-transforms-p))))
+   (:default
+    (and
+     ;; Emacs 27 only.
+     (fboundp 'image-transforms-p)
+     (image-transforms-p)))))
 
 (defun vscode-icon-get-scale (image-size)
   "Get scale according to IMAGE-SIZE."
