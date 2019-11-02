@@ -122,7 +122,7 @@ This directory is searched when icons are being searched for in addition to
     ("sh" . "shell")
     ("md" . "markdown")
     ("yml" . "yaml")
-    ("hpp" . "cpp2")
+    ("hpp" . "cppheader")
     ("cc" . "cpp")
     ("m" . "objectivec")
     ("png" . "image")
