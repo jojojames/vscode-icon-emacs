@@ -164,10 +164,12 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
           (vscode-icon-default-folder))
       (vscode-icon-default-folder))))
 
-(defun vscode-icon-file (file)
-  "Get file icon given FILE."
+(defun vscode-icon-file (file &optional light)
+  "Get file icon given FILE.
+
+If LIGHT is t, try to use the light variant if it exists."
   (vscode-icon-if-let* ((filepath (vscode-icon-file-exists-p
-                                   (file-name-extension file))))
+                                   (file-name-extension file) light)))
       (vscode-icon-create-image filepath)
     (vscode-icon-if-let*
         ((val (or
@@ -176,7 +178,8 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
                (cdr (assoc file vscode-icon-file-alist))
                (cdr (assoc (file-name-extension file)
                            vscode-icon-file-alist)))))
-        (vscode-icon-if-let* ((filepath (vscode-icon-file-exists-p val)))
+        (vscode-icon-if-let* ((filepath (vscode-icon-file-exists-p
+                                         val light)))
             (vscode-icon-create-image filepath)
           (vscode-icon-default-file))
       (vscode-icon-default-file))))
