@@ -234,9 +234,13 @@ variant."
   (let ((scale (vscode-icon-get-scale vscode-icon-size)))
     (create-image filename 'png nil :scale scale :ascent 'center)))
 
-(defun vscode-icon-default-folder ()
-  "Return image for default folder."
-  (vscode-icon-create-image (expand-file-name "default_folder.png")))
+(defun vscode-icon-default-folder (&optional open)
+  "Return image for default folder.
+
+If OPEN is t, try to use the opened variant."
+  (vscode-icon-create-image
+   (expand-file-name (if open "default_folder_opened.png"
+                       "default_folder.png"))))
 
 (defun vscode-icon-default-file ()
   "Return image for default file."
