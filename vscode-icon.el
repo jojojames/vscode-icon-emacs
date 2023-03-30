@@ -151,18 +151,22 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
         (vscode-icon-dir file)
       (vscode-icon-file file))))
 
-(defun vscode-icon-dir (file)
-  "Get directory icon given FILE."
+(defun vscode-icon-dir (file &optional light open)
+  "Get directory icon given FILE.
+
+If LIGHT is t, try to use the light variant if it exists. If OPEN
+is t and the icons is a folder, try to use the opened variant."
   (vscode-icon-if-let* ((filepath (vscode-icon-dir-exists-p
-                                   (file-name-base file))))
+                                   (file-name-base file) light open)))
       (vscode-icon-create-image filepath)
     (vscode-icon-if-let*
         ((val (cdr (assoc
                     (file-name-base file) vscode-icon-dir-alist))))
-        (vscode-icon-if-let* ((filepath (vscode-icon-dir-exists-p val)))
+        (vscode-icon-if-let* ((filepath (vscode-icon-dir-exists-p
+                                         val light open)))
             (vscode-icon-create-image filepath)
-          (vscode-icon-default-folder))
-      (vscode-icon-default-folder))))
+          (vscode-icon-default-folder open))
+      (vscode-icon-default-folder open))))
 
 (defun vscode-icon-file (file &optional light)
   "Get file icon given FILE.
