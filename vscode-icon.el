@@ -181,6 +181,30 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
           (vscode-icon-default-file))
       (vscode-icon-default-file))))
 
+(defun vscode-icon-locate-file (key dir-list directory-p extensions light open)
+  "Locate the icon for KEY in directories in DIR-LIST.
+
+If DIRECTORY-P is t, look for directory icons. If LIGHT is t, try
+to use the light variant if it exists. If OPEN is t and the icons
+is a folder, try to use the opened variant.
+
+Return the absolute path if found, nil if not.
+
+EXTENSIONS is a list of extension to look for; it could include
+\".png\" or \".svg\"."
+  (let* ((prefix (if directory-p "folder_type_" "file_type_"))
+         (filename (concat prefix key))
+         (filename-light (concat prefix "light_" key))
+         (filename-opened (concat prefix key "_opened"))
+         (filename-light-opened (concat prefix "light_" key "_opened")))
+    (or (and light open
+             (locate-file filename-light-opened dir-list extensions))
+        (and light
+             (locate-file filename-light dir-list extensions))
+        (and open
+             (locate-file filename-opened dir-list extensions))
+        (locate-file filename dir-list extensions))))
+
 (defun vscode-icon-file-exists-p (key)
   "Check if there is an icon for KEY.
 
