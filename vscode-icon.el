@@ -217,18 +217,17 @@ light variant if it exists."
                          vscode-icon-extra-icon-directory))))
     (vscode-icon-locate-file key dir-list nil '(".png") light nil)))
 
-(defun vscode-icon-dir-exists-p (key)
+(defun vscode-icon-dir-exists-p (key &optional light open)
   "Check if there is an icon for KEY.
 
-Return filepath of icon if so."
-  (let ((path-in-default-dir (expand-file-name (format "folder_type_%s.png" key)))
-        (path-in-extra-dir (expand-file-name (format "%d/folder_type_%s.png"
-                                                     vscode-icon-size key)
-                                             vscode-icon-extra-icon-directory)))
-    (cond
-     ((file-exists-p path-in-default-dir) path-in-default-dir)
-     ((file-exists-p path-in-extra-dir) path-in-extra-dir)
-     (:default nil))))
+Return filepath of icon if so. If LIGHT is t, try to use the
+light variant if it exists. If OPEN is t, try to use the opened
+variant."
+  (let ((dir-list (list default-directory
+                        (expand-file-name
+                         (number-to-string vscode-icon-size)
+                         vscode-icon-extra-icon-directory))))
+    (vscode-icon-locate-file key dir-list t '(".png") light open)))
 
 (defun vscode-icon-create-image (filename)
   "Helper method to create and return an image given FILENAME."
