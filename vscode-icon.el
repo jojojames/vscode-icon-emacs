@@ -138,8 +138,11 @@ This directory is searched when icons are being searched for in addition to
 
 ;; Implementation
 
-(defun vscode-icon-for-file (file)
+(defun vscode-icon-for-file (file &optional light open)
   "Return an vscode icon image given FILE.
+
+If LIGHT is t, try to use the light variant if it exists. If OPEN
+is t and the icons is a folder, try to use the opened variant.
 
 Icon Source: https://github.com/vscode-icons/vscode-icons"
   (let ((default-directory
@@ -148,8 +151,8 @@ Icon Source: https://github.com/vscode-icons/vscode-icons"
             (concat vscode-icon-dir
                     (number-to-string vscode-icon-size) "/"))))
     (if (file-directory-p file)
-        (vscode-icon-dir file)
-      (vscode-icon-file file))))
+        (vscode-icon-dir file light open)
+      (vscode-icon-file file light))))
 
 (defun vscode-icon-dir (file &optional light open)
   "Get directory icon given FILE.
