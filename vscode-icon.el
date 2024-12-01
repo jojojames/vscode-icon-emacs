@@ -291,8 +291,8 @@ If there is no extension, just return the base file name."
 
 (defun vscode-icon-convert-from-big-png (icon-size)
   "Convert svg images to pngs sizing them to ICON-SIZE."
-  (unless (executable-find "convert")
-    (user-error "Executable convert not found! Install imagemagick? "))
+  (unless (executable-find "magick")
+    (user-error "Executable magick not found! Install imagemagick? "))
   (let ((default-directory vscode-icon-root)
         (target-directory
          (if icon-size
@@ -312,10 +312,10 @@ If there is no extension, just return the base file name."
                 (scale (truncate (* 100 (vscode-icon-get-scale icon-size))))
                 (command
                  (format
-                  "convert -depth 8 -density %d -background transparent -scale %d%% %s PNG32:%s"
+                  "magick -depth 8 -density %d -background transparent %s -scale %d%% PNG32:%s"
                   density
-                  scale
                   file
+                  scale
                   (format "%sicons/%d/%s.png" vscode-icon-root icon-size base))))
            (let ((result (shell-command command)))
              `(,command . ,result))))))
@@ -327,8 +327,8 @@ If there is no extension, just return the base file name."
 Only create source icons if FORCE is non nil or if the directory is empty.
 
 i.e. Don't create source pngs if there are already source pngs created."
-  (unless (executable-find "convert")
-    (user-error "Executable convert not found! Install imagemagick? "))
+  (unless (executable-find "magick")
+    (user-error "Executable magick not found! Install imagemagick? "))
   (let ((default-directory vscode-icon-root)
         (target-directory (expand-file-name "icons/128" vscode-icon-root)))
     (unless (file-directory-p target-directory)
@@ -344,7 +344,7 @@ i.e. Don't create source pngs if there are already source pngs created."
              (let* ((density (* 128 3))
                     (command
                      (format
-                      "convert -depth 8 -density %d -background transparent -size 128x128 %s PNG32:%s"
+                      "magick -density %d -background transparent %s -resize 128x128 PNG32:%s"
                       density
                       file
                       (format "%sicons/128/%s.png" vscode-icon-root base))))
